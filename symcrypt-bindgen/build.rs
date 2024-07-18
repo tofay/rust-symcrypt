@@ -1,6 +1,7 @@
 extern crate bindgen;
 
 use std::env;
+use std::io::Write as _;
 use std::path::PathBuf;
 
 
@@ -16,6 +17,7 @@ fn main() {
 
     let bindings = bindgen::Builder::default()
         .header("inc/wrapper.h")
+        .size_t_is_usize(false) // So generated bindings on 64-bit Linux platforms match checked in bindings.
         .clang_arg("-v")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         // ALLOWLIST
@@ -53,6 +55,8 @@ fn main() {
         // UTILITY FUNCTIONS
         .allowlist_function("SymCryptWipe")
         .allowlist_function("SymCryptRandom")
+        // Arbitrary function added in 103.4
+        .allowlist_function("SymCryptXorBytes")
         
         .generate_comments(true)
         .derive_default(true)
@@ -60,7 +64,14 @@ fn main() {
         .expect("Unable to generate bindings");
 
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let bindings_path = out_path.join("raw_generated_bindings.rs");
     bindings
-        .write_to_file(out_path.join("raw_generated_bindings.rs"))
+        .write_to_file(&bindings_path)
         .expect("Couldn't write bindings!");
+
+    // Bindgen generates c_uint for enums on Linux, but c_int on Windows. We need to make sure it's c_int on both platforms.
+    // https://github.com/rust-lang/rust-bindgen/issues/1966  
+    let bindings = std::fs::read_to_string(&bindings_path).expect("Couldn't read bindings!");
+    let mut bindings_file = std::fs::File::create(&bindings_path).expect("Couldn't write bindings!");
+    bindings_file.write_all(bindings.replace("raw::c_uint", "raw::c_int").as_bytes()).expect("Couldn't write modified bindings!");
 }

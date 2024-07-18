@@ -94,6 +94,23 @@ pub fn symcrypt_random(buff: &mut [u8]) {
         symcrypt_sys::SymCryptRandom(buff.as_mut_ptr(), buff.len() as u64);
     }
 }
+// example of a function that is only available in 103.4
+#[cfg(symcrypt1034)]
+pub fn symcrypt_xor_bytes(buff1: &[u8], buff2: &[u8]) -> Vec<u8> {
+    // noddy xor bytes invocation
+    let result_size = std::cmp::min(buff1.len(), buff2.len());
+    let mut result = Vec::with_capacity(result_size);
+    unsafe {
+        // SAFETY: FFI calls
+        symcrypt_sys::SymCryptXorBytes(
+            buff1.as_ptr(),
+            buff2.as_ptr(),
+            result.as_mut_ptr(),
+            result_size as u64,
+        );
+    }
+    return result.to_vec();
+}
 
 #[cfg(test)]
 mod test {
@@ -108,5 +125,18 @@ mod test {
         symcrypt_random(&mut buff_2);
 
         assert_ne!(buff_1, buff_2);
+    }
+
+    #[test]
+    #[cfg(symcrypt1034)]
+    fn test_xor_bytes() {
+        let mut buff_1 = [0u8; 10];
+        let mut buff_2 = [0u8; 10];
+
+        symcrypt_random(&mut buff_1);
+        symcrypt_random(&mut buff_2);
+
+        let new = symcrypt_xor_bytes(&buff_1, &buff_2);
+        assert_ne!(buff_1, new.as_slice());
     }
 }

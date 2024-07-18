@@ -23,6 +23,10 @@ default = []
 md5 = []
 sha1 = []
 weak-crypto = ["md5","sha1"]
+bindgen = ["symcrypt-sys/bindgen"]
 
 [dev-dependencies]
 hex = "0.4.3"
+
+[build-dependencies]
+symcrypt-sys = {path = "../symcrypt-sys", version = "0.2.0"}

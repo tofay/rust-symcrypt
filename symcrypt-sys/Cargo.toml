@@ -14,3 +14,8 @@ readme = "README.md"
 
 [dependencies]
 libc = "0.2.0"
+symcrypt-bindgen = { "path" = "../symcrypt-bindgen", optional = true }
+
+[features]
+default = []
+bindgen = ["symcrypt-bindgen"]

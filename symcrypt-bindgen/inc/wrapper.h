@@ -3,4 +3,4 @@
 #endif
 
 
-#include "../../../SymCrypt/inc/symcrypt.h"
+#include "symcrypt.h"

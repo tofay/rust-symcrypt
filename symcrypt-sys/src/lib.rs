@@ -5,5 +5,10 @@
 
 extern crate libc;
 
+#[cfg(not(feature = "bindgen"))]
 mod symcrypt_bindings;
+#[cfg(not(feature = "bindgen"))]
 pub use symcrypt_bindings::*;
+
+#[cfg(feature = "bindgen")]
+pub use symcrypt_bindgen::*;
